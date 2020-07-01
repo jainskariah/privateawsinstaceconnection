@@ -1,0 +1,50 @@
+Need to add below line on ansible.cfg file on ansible
+
+
+[ssh_connection]
+ssh_args = -F /home/user/JAINAWS/Ansible_class/ssh.cfg -o ControlMaster=auto -o ControlPersist=30m
+control_path = ~/.ssh/ansible-%%r@%%h:%%p
+
+
+
+
+Host file entry should be used like:
+
+
+[webservers]
+18.216.24.88
+
+
+[private]
+180.76.16.96 ansible_ssh_common_args='-o ProxyCommand="ssh -q -A -F /home/user/JAINAWS/Ansible_class/ssh.cfg  ec2-user@18.216.24.88 /bin/nc %h %p"'
+
+
+
+
+This will be our ssh.cfg file content
+
+
+#######################################
+# bastion server on public sub-network
+#######################################
+Host 18.216.24.88
+  User ec2-user
+  IdentityFile /home/user/JAINAWS/Ansible_class/awswindowskey.pem
+  PasswordAuthentication no
+  ForwardAgent yes
+  ServerAliveInterval 60
+  TCPKeepAlive yes
+  ControlMaster auto
+  ControlPath ~/.ssh/%r@%h:%p
+  ControlPersist 15m
+  ProxyCommand none
+ 
+###################################
+# web server on private sub-network
+###################################
+Host 180.76.16.96
+  User ec2-user
+  IdentityFile /home/user/JAINAWS/Ansible_class/awswindowskey.pem
+  ServerAliveInterval 60
+  TCPKeepAlive yes
+  ProxyCommand ssh -q -A -F /home/user/JAINAWS/Ansible_class/ssh.cfg  ec2-user@18.216.24.88 /bin/nc %h %p
